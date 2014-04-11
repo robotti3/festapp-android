@@ -1,10 +1,9 @@
 package com.futurice.festapp;
 
 import java.util.Date;
-
 import com.futurice.festapp.dao.GigDAO;
 import com.futurice.festapp.domain.to.FestivalDay;
-
+import android.annotation.SuppressLint;
 import android.app.TabActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -22,6 +21,7 @@ import com.futurice.festapp.R;
  * 
  * @author Pyry-Samuli Lahti / Futurice
  */
+@SuppressLint("NewApi")
 @SuppressWarnings("deprecation")
 public class ScheduleTabActivity extends TabActivity {
 	
@@ -33,7 +33,10 @@ public class ScheduleTabActivity extends TabActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.schedule_tabs);
 		
-		tabHost = getTabHost();
+		tabHost = (TabHost) findViewById(android.R.id.tabs);
+		addTabSpec(FestivalDay.FRIDAY);
+		addTabSpec(FestivalDay.SATURDAY);
+		addTabSpec(FestivalDay.SUNDAY);
 		addTabSpec(FestivalDay.FRIDAY);
 		addTabSpec(FestivalDay.SATURDAY);
 		addTabSpec(FestivalDay.SUNDAY);
