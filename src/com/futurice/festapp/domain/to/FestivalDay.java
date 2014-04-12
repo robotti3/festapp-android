@@ -11,44 +11,23 @@ public enum FestivalDay {
     THURSDAY,
 	FRIDAY,
 	SATURDAY,
-	SUNDAY,
-	MON,
-	TUE,
-	WED,
-	THU,
-	FRI,
-	SAT,
-	SUN;
+	SUNDAY;
 	
 	public String getLocalName(Context context) {
 		switch (this) {
         case MONDAY:
-            return context.getString(R.string.Monday);
-        case TUESDAY:
-            return context.getString(R.string.Tuesday);
-		case WEDNESDAY:
-            return context.getString(R.string.Wednesday);
-        case THURSDAY:
-            return context.getString(R.string.Thursday);
-        case FRIDAY:
-			return context.getString(R.string.Friday);
-		case SATURDAY:
-			return context.getString(R.string.Saturday);
-		case SUNDAY:
-			return context.getString(R.string.Sunday);
-        case MON:
             return context.getString(R.string.Mon);
-        case TUE:
+        case TUESDAY:
             return context.getString(R.string.Tue);
-		case WED:
+		case WEDNESDAY:
             return context.getString(R.string.Wed);
-        case THU:
+        case THURSDAY:
             return context.getString(R.string.Thu);
-        case FRI:
+        case FRIDAY:
 			return context.getString(R.string.Fri);
-		case SAT:
+		case SATURDAY:
 			return context.getString(R.string.Sat);
-		case SUN:
+		case SUNDAY:
 			return context.getString(R.string.Sun);
 		default:
 			return null;
