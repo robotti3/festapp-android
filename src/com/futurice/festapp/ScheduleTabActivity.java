@@ -33,10 +33,10 @@ public class ScheduleTabActivity extends TabActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.schedule_tabs);
 		
-		tabHost = getTabHost();
-		addTabSpec(FestivalDay.FRIDAY);
-		addTabSpec(FestivalDay.SATURDAY);
-		addTabSpec(FestivalDay.SUNDAY);
+		tabHost = (TabHost)findViewById(android.R.id.tabhost);
+		addTabSpec(FestivalDay.FRI);
+		addTabSpec(FestivalDay.SAT);
+		addTabSpec(FestivalDay.SUN);
 		FestivalDay day = GigDAO.getFestivalDay(new Date());
 		if (day == null) {
 			day = FestivalDay.FRIDAY;
