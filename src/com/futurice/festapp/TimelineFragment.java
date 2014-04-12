@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,6 +25,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -43,9 +44,7 @@ import com.futurice.festapp.util.UIUtil;
  * 
  * @author Pyry-Samuli Lahti / Futurice
  */
-public class TimelineActivity extends Activity {
-	
-	private static final String TAG = "TimelineActivity";
+public class TimelineFragment extends Fragment {
 	
 	private static final long NOW_MARKER_FREQUENCY = 60 * 1000L;
 	
@@ -87,8 +86,8 @@ public class TimelineActivity extends Activity {
 				GigTimelineWidget gigWidget = (GigTimelineWidget) v;
 				gigWidget.setBackgroundResource(R.drawable.schedule_gig_hilight);
 				vibrator.vibrate(50l);
-				Intent artistInfo = new Intent(getBaseContext(), ArtistInfoActivity.class);
-				TimelineActivity.this.gigWidget = gigWidget;
+				Intent artistInfo = new Intent(getActivity(), ArtistInfoActivity.class);
+				TimelineFragment.this.gigWidget = gigWidget;
 			    artistInfo.putExtra("gig.id", gigWidget.getGig().getId());
 			    startActivityForResult(artistInfo, 0);
 			}
@@ -97,10 +96,10 @@ public class TimelineActivity extends Activity {
 	
 
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == 0) {
 			if (gigWidget != null) {
-				Gig gig = GigDAO.findGig(this, gigWidget.getGig().getId());
+				Gig gig = GigDAO.findGig(getActivity(), gigWidget.getGig().getId());
 				gigWidget.setFavorite(gig.isFavorite());
 			}
 		}
@@ -109,22 +108,25 @@ public class TimelineActivity extends Activity {
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-		inflater = LayoutInflater.from(this);
-		ROW_HEIGHT = (int) getResources().getDimension(R.dimen.timeline_gigHeight);
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.schedule);
-		setFestivalDay();
-		daySchedule = GigDAO.findDaySchedule(this, festivalDay);
-		findViewById(R.id.timelineNowLine).setVisibility(View.GONE);
-		scrollView = (HorizontalScrollView) findViewById(R.id.timelineScrollView);
+	}
+	
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+		vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+		// inflater = LayoutInflater.from(getActivity());
+		ROW_HEIGHT = (int) getResources().getDimension(R.dimen.timeline_gigHeight);
+		getActivity().setContentView(R.layout.schedule);
+		this.festivalDay = FestivalDay.SATURDAY; // korvaa tämä!
+		daySchedule = GigDAO.findDaySchedule(getActivity(), festivalDay);
+		getView().findViewById(R.id.timelineNowLine).setVisibility(View.GONE);
+		scrollView = (HorizontalScrollView) getView().findViewById(R.id.timelineScrollView);
 		setTimelineStartAndEndMoments();
 		constructUiElements();
 		
 		handler.postDelayed(runnable, NOW_MARKER_FREQUENCY);
 		
 		// Gestures
-        gestureDetector = new GestureDetector(this, new GuitarSwipeListener());
+        gestureDetector = new GestureDetector(getActivity(), new GuitarSwipeListener());
         gestureListener = new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
                 if (gestureDetector.onTouchEvent(event)) {
@@ -143,7 +145,8 @@ public class TimelineActivity extends Activity {
 			});
 		}
 		
-		showInitialFavoriteInfoOnFirstVisit(this);
+		showInitialFavoriteInfoOnFirstVisit(getActivity());
+		return scrollView;
 	}
 	
 	private void showInitialFavoriteInfoOnFirstVisit(Context context) {
@@ -178,13 +181,13 @@ public class TimelineActivity extends Activity {
 		if (timelineStartMoment == null || timelineEndMoment == null) {
 			return;
 		}
-		View line = findViewById(R.id.timelineNowLine);
+		View line = getView().findViewById(R.id.timelineNowLine);
 		line.bringToFront();
 		if (now.after(timelineStartMoment) && now.before(timelineEndMoment)) {
 			line.setVisibility(View.VISIBLE);
-			TextView marginView = (TextView) findViewById(R.id.timelineNowMargin);
+			TextView marginView = (TextView) getView().findViewById(R.id.timelineNowMargin);
 			int leftMargin = CalendarUtil.getMinutesBetweenTwoDates(timelineStartMoment, now) * GigTimelineWidget.PIXELS_PER_MINUTE - HOUR_MARKER_WIDTH/2 - 3;
-			initialScrollTo = leftMargin - getWindowManager().getDefaultDisplay().getWidth()/2;
+			initialScrollTo = leftMargin - getActivity().getWindowManager().getDefaultDisplay().getWidth()/2;
 			marginView.setWidth(leftMargin);
 		} else {
 			line.setVisibility(View.GONE);
@@ -193,11 +196,11 @@ public class TimelineActivity extends Activity {
 	
 	
 	private void constructUiElements() {
-		stageLayout = (LinearLayout) findViewById(R.id.stageLayout);
+		stageLayout = (LinearLayout) getView().findViewById(R.id.stageLayout);
 		stageLayout.removeAllViews();
 		addStages();
 		
-		gigLayout = (LinearLayout) findViewById(R.id.gigLayout);
+		gigLayout = (LinearLayout) getView().findViewById(R.id.gigLayout);
 		addTimeline();
 		addGigs();
 	}
@@ -205,7 +208,7 @@ public class TimelineActivity extends Activity {
 	private void addGigs() {
 		Map<String, List<Gig>> stageGigs = daySchedule.getStageGigs();
 		
-		TextView textView = new TextView(this);
+		TextView textView = new TextView(getActivity());
 		textView.setText("");
 		textView.setHeight(ROW_HEIGHT);
 		textView.setPadding(1, 10, 1, 1);
@@ -223,7 +226,7 @@ public class TimelineActivity extends Activity {
 		}
 		
 		for (String stage : stages) {
-			LinearLayout stageRow = new LinearLayout(this);
+			LinearLayout stageRow = new LinearLayout(getActivity());
 			LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 			params.setMargins(0, 2, 0, 2);
 			stageRow.setLayoutParams(params);
@@ -233,17 +236,17 @@ public class TimelineActivity extends Activity {
 			for (Gig gig : stageGigs.get(stage)) {
 				if (previousTime.before(gig.getOnlyStartTime())) {
 					int margin = GigTimelineWidget.PIXELS_PER_MINUTE * CalendarUtil.getMinutesBetweenTwoDates(previousTime, gig.getOnlyStartTime());
-					TextView tv = new TextView(this);
+					TextView tv = new TextView(getActivity());
 					tv.setHeight(ROW_HEIGHT);
 					tv.setWidth(margin);
 					stageRow.addView(tv);
 				}
 				
-				GigTimelineWidget gigWidget = new GigTimelineWidget(this, null, gig, previousTime);
+				GigTimelineWidget gigWidget = new GigTimelineWidget(getActivity(), null, gig, previousTime);
 				stageRow.addView(gigWidget);
 				if (gig.getOnlyEndTime().equals(daySchedule.getLatestTime())) {
 					int margin = GigTimelineWidget.PIXELS_PER_MINUTE * TIMELINE_END_OFFSET;
-					TextView tv = new TextView(this);
+					TextView tv = new TextView(getActivity());
 					tv.setHeight(ROW_HEIGHT);
 					tv.setWidth(margin);
 					stageRow.addView(tv);
@@ -261,7 +264,7 @@ public class TimelineActivity extends Activity {
 	}
 	
 	private View getGuitarString(int i) {
-		LinearLayout llAlso = new LinearLayout(this);
+		LinearLayout llAlso = new LinearLayout(getActivity());
 		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, getResources().getDimensionPixelSize(R.dimen.timeline_guitarStringHeight));
 		llAlso.setLayoutParams(params);
 		llAlso.setOrientation(LinearLayout.HORIZONTAL);
@@ -272,7 +275,7 @@ public class TimelineActivity extends Activity {
 		if (i < 1) {
 			i = 1;
 		}
-		int imageId = getResources().getIdentifier(FestAppConstants.DRAWABLE_GUITAR_STRING_PREFIX + i, "drawable", getPackageName());
+		int imageId = getResources().getIdentifier(FestAppConstants.DRAWABLE_GUITAR_STRING_PREFIX + i, "drawable", getActivity().getPackageName());
 		llAlso.setBackgroundResource(imageId);
 		
 		return llAlso;
@@ -285,25 +288,25 @@ public class TimelineActivity extends Activity {
 			return;
 		}
 		
-		LinearLayout numbersLayout = (LinearLayout) findViewById(R.id.timelineNumbers);
-		LinearLayout timelineVerticalLines = (LinearLayout) findViewById(R.id.timelineVerticalLines);
+		LinearLayout numbersLayout = (LinearLayout) getView().findViewById(R.id.timelineNumbers);
+		LinearLayout timelineVerticalLines = (LinearLayout) getView().findViewById(R.id.timelineVerticalLines);
 		
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(timelineStartMoment);
 		
 		int minutes = 60 - cal.get(Calendar.MINUTE);
-		TextView tv = new TextView(this);
+		TextView tv = new TextView(getActivity());
 		tv.setHeight(ROW_HEIGHT);
 		tv.setWidth(GigTimelineWidget.PIXELS_PER_MINUTE * minutes - getResources().getDimensionPixelSize(R.dimen.timeline_hourText_offset));
 		numbersLayout.addView(tv);
 		
-		tv = new TextView(this);
+		tv = new TextView(getActivity());
 		tv.setWidth(GigTimelineWidget.PIXELS_PER_MINUTE * minutes - HOUR_MARKER_WIDTH/2);
 		timelineVerticalLines.addView(tv);
 		cal.add(Calendar.MINUTE, minutes);
 		
 		while (cal.getTime().before(timelineEndMoment)) {
-			tv = new TextView(this);
+			tv = new TextView(getActivity());
 			tv.setTextColor(Color.parseColor("#e32c22"));
 			tv.setTypeface(null, Typeface.BOLD);
 
@@ -320,7 +323,7 @@ public class TimelineActivity extends Activity {
 			
 			inflater.inflate(R.layout.timeline_hour_marker, timelineVerticalLines);
 			
-			tv = new TextView(this);
+			tv = new TextView(getActivity());
 			tv.setTextColor(Color.parseColor("#e32c22"));
 			tv.setTypeface(null, Typeface.BOLD);
 
@@ -360,15 +363,6 @@ public class TimelineActivity extends Activity {
 		textView.setText(name);
 		stageLayout.addView(parent);
 	}
-
-
-	private void setFestivalDay() {
-		Bundle extras = getIntent().getExtras();
-		if (extras != null) {
-			FestivalDay festivalDay = (FestivalDay) getIntent().getExtras().get("festivalDay");
-			this.festivalDay = festivalDay;
-		}
-	}
 	
 	class GuitarSwipeListener extends SimpleOnGestureListener {
         @Override
@@ -380,7 +374,7 @@ public class TimelineActivity extends Activity {
 	            	if(distanceY > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
 	            		boolean upwardMotion = e1.getY() - e2.getY() > 0;
 	            		MediaPlayer mp = null;
-            			mp = MediaPlayer.create(getBaseContext(), upwardMotion ? R.raw.guitar1 : R.raw.guitar2);
+            			mp = MediaPlayer.create(getActivity(), upwardMotion ? R.raw.guitar1 : R.raw.guitar2);
 	            		vibrator.vibrate(150l);
 	            		mp.start();
 	            		mp.setOnCompletionListener(new OnCompletionListener() {

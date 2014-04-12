@@ -30,7 +30,7 @@ import com.futurice.festapp.R;
 
 public class ScheduleTabActivity extends Activity {
 	
-	public static class ScheduleTabListener<T extends Fragment> implements ActionBar.TabListener {
+	public class ScheduleTabListener<T extends Fragment> implements ActionBar.TabListener {
 	    private Fragment mFragment;
 	    private final Activity mActivity;
 	    private final String mTag;
@@ -80,6 +80,7 @@ public class ScheduleTabActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 	    ActionBar actionBar = getActionBar();
+	    actionBar.setDisplayHomeAsUpEnabled(true);
 	    actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 	    actionBar.setDisplayShowTitleEnabled(false);
 
@@ -110,12 +111,8 @@ public class ScheduleTabActivity extends Activity {
 	private void addActionTab(ActionBar actionBar, FestivalDay festivalDay) {
 	    Tab tab = actionBar.newTab()
                 		   .setText(festivalDay.getLocalName(this))
-                		   .setTabListener(new ScheduleTabListener<Fragment>(this, festivalDay.name(), Fragment.class));
+                		   .setTabListener(new ScheduleTabListener<TimelineFragment>(this, festivalDay.name(), TimelineFragment.class));
 	    actionBar.addTab(tab);
 		
-	    /* Intent intent = new Intent(getBaseContext(), TimelineActivity.class);
-	    intent.putExtra("festivalDay", festivalDay);
-		tabSpec.setContent(intent);
-		tabHost.addTab(tabSpec);  */
 	}
 }
