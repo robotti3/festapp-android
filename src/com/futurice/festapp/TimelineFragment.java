@@ -53,7 +53,7 @@ public class TimelineFragment extends Fragment {
 	private LinearLayout stageLayout;
 	private LinearLayout gigLayout;
 	private HorizontalScrollView scrollView;
-	private Vibrator vibrator;
+	// private Vibrator vibrator;
 	private LayoutInflater inflater;
 	private Date timelineStartMoment;
 	private Date timelineEndMoment;
@@ -85,7 +85,7 @@ public class TimelineFragment extends Fragment {
 			if (v instanceof GigTimelineWidget) {
 				GigTimelineWidget gigWidget = (GigTimelineWidget) v;
 				gigWidget.setBackgroundResource(R.drawable.schedule_gig_hilight);
-				vibrator.vibrate(50l);
+				// vibrator.vibrate(50l);
 				Intent artistInfo = new Intent(getActivity(), ArtistInfoActivity.class);
 				TimelineFragment.this.gigWidget = gigWidget;
 			    artistInfo.putExtra("gig.id", gigWidget.getGig().getId());
@@ -111,22 +111,23 @@ public class TimelineFragment extends Fragment {
 		super.onCreate(savedInstanceState);
 	}
 	
+	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
-		vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-		// inflater = LayoutInflater.from(getActivity());
+		// vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+		this.inflater = inflater;
 		ROW_HEIGHT = (int) getResources().getDimension(R.dimen.timeline_gigHeight);
-		getActivity().setContentView(R.layout.schedule);
-		this.festivalDay = FestivalDay.SATURDAY; // korvaa tämä!
+		// getActivity().setContentView(R.layout.schedule);
+		festivalDay = FestivalDay.SATURDAY; // korvaa tämä!
 		daySchedule = GigDAO.findDaySchedule(getActivity(), festivalDay);
-		getView().findViewById(R.id.timelineNowLine).setVisibility(View.GONE);
-		scrollView = (HorizontalScrollView) getView().findViewById(R.id.timelineScrollView);
+		// container.findViewById(R.id.timelineNowLine).setVisibility(View.GONE);
+		scrollView = (HorizontalScrollView) container.findViewById(R.id.timelineScrollView);
 		setTimelineStartAndEndMoments();
-		constructUiElements();
+		// constructUiElements(container);
 		
 		handler.postDelayed(runnable, NOW_MARKER_FREQUENCY);
 		
 		// Gestures
-        gestureDetector = new GestureDetector(getActivity(), new GuitarSwipeListener());
+        /* gestureDetector = new GestureDetector(getActivity(), new GuitarSwipeListener());
         gestureListener = new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
                 if (gestureDetector.onTouchEvent(event)) {
@@ -135,7 +136,7 @@ public class TimelineFragment extends Fragment {
                 return false;
             }
         };
-        scrollView.setOnTouchListener(gestureListener);
+        scrollView.setOnTouchListener(gestureListener); */
         
 		if (initialScrollTo != null && initialScrollTo > 0) {
 			scrollView.post(new Runnable() {
@@ -145,7 +146,7 @@ public class TimelineFragment extends Fragment {
 			});
 		}
 		
-		showInitialFavoriteInfoOnFirstVisit(getActivity());
+		// showInitialFavoriteInfoOnFirstVisit(getActivity());
 		return scrollView;
 	}
 	
@@ -195,12 +196,12 @@ public class TimelineFragment extends Fragment {
 	}
 	
 	
-	private void constructUiElements() {
-		stageLayout = (LinearLayout) getView().findViewById(R.id.stageLayout);
+	private void constructUiElements(ViewGroup container) {
+		stageLayout = (LinearLayout) container.findViewById(R.id.stageLayout);
 		stageLayout.removeAllViews();
 		addStages();
 		
-		gigLayout = (LinearLayout) getView().findViewById(R.id.gigLayout);
+		gigLayout = (LinearLayout) container.findViewById(R.id.gigLayout);
 		addTimeline();
 		addGigs();
 	}
@@ -375,7 +376,7 @@ public class TimelineFragment extends Fragment {
 	            		boolean upwardMotion = e1.getY() - e2.getY() > 0;
 	            		MediaPlayer mp = null;
             			mp = MediaPlayer.create(getActivity(), upwardMotion ? R.raw.guitar1 : R.raw.guitar2);
-	            		vibrator.vibrate(150l);
+	            		// vibrator.vibrate(150l);
 	            		mp.start();
 	            		mp.setOnCompletionListener(new OnCompletionListener() {
 	            			@Override
